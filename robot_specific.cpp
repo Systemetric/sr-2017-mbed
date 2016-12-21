@@ -20,8 +20,8 @@
 #include "mbed.h"
 
 // These should be changed for each robot.
-const double kWheelDiameter = 12.6;
-const double kRobotDiameter = 43.5;
+const double kWheelDiameter = 13.36;
+const double kRobotDiameter = 42.79;
 // These will probably be OK to leave as they are, but may need changing.
 const int kStepsPerRotation = 3200;
 const int kInitialPwmPeriod = 1000;

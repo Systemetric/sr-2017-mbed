@@ -27,14 +27,26 @@ enum State {
     // k*Received means "waiting for argument(s)", i.e. how far to move
     kForwardReceived,
     kBackwardReceived,
+    kLongDistanceReceived,
     kLeftReceived,
     kRightReceived
+};
+enum CurrentCommand {
+    kNone,
+    kMoveForward,
+    kMoveBackward,
+    kMoveLongDistance,
+    kTurnLeft,
+    kTurnRight
 };
 
 volatile int steps_gone = 0;
 volatile int steps_left = 0;
 volatile int pwm_period = 0;
 volatile int robot_state = kReadyForCommand;
+// Track the currently executing command so that we can respond with its letter
+// when it ends.
+volatile int current_command = kNone;
 
 // DigitalOuts are inherently "volatile", so they don't need to be explicitly
 // declared as such. If they are, things break.
@@ -43,7 +55,6 @@ DigitalOut led_pwm_interrupt(p11);
 DigitalOut led_accelerate(p12);
 DigitalOut led_decelerate(p13);
 DigitalOut led_left(LED2);
-DigitalOut led_zero_distance_received(LED3);
 DigitalOut led_right(LED4);
 
 void PwmHandler() {
@@ -52,9 +63,30 @@ void PwmHandler() {
         led_pwm_interrupt = !led_pwm_interrupt;
         steps_gone++;
         steps_left--;
-        if (steps_left <= 0) {
+        if (steps_left <= 0) {            
             pwm.pulsewidth_ms(0);  // disable PWM by setting duty cycle to 0
-            usb_serial.putc('d');  // say we're done driving
+            //usb_serial.putc('d');  // say we're done driving
+            switch (current_command) {
+                case kMoveForward:
+                    usb_serial.putc('f');
+                    break;
+                case kMoveBackward:
+                    usb_serial.putc('b');
+                    break;
+                case kMoveLongDistance:
+                    usb_serial.putc('F');
+                    break;
+                case kTurnLeft:
+                    usb_serial.putc('l');
+                    break;
+                case kTurnRight:
+                    usb_serial.putc('r');
+                    break;
+                default:
+                    usb_serial.putc('d');
+                    break;
+            }
+            current_command = kNone;
         }
         LPC_PWM1->IR = PWM_IR_MR4;  // clear the interrupt flag (yes, by writing a 1 to it)
     } else {
@@ -122,6 +154,9 @@ void SerialHandler() {
                 case 'b':
                     robot_state = kBackwardReceived;
                     break;
+                case 'F':
+                    robot_state = kLongDistanceReceived;
+                    break;
                 case 'l':
                     led_left = 1;
                     led_right = 0;
@@ -136,9 +171,7 @@ void SerialHandler() {
             break;
         // To the next guy: yes, this sucks. The important thing is it works.
         case kForwardReceived:
-            if (character == 0) {
-                led_zero_distance_received = 1;
-            }
+            current_command = kMoveForward;
             steps_left = character * kStepsPerCentimetre;
             steps_gone = 0;
             LeftWheelForward();
@@ -149,9 +182,7 @@ void SerialHandler() {
             robot_state = kReadyForCommand;
             break;
         case kBackwardReceived:
-            if (character == 0) {
-                led_zero_distance_received = 1;
-            }
+            current_command = kMoveBackward;
             steps_left = character * kStepsPerCentimetre;
             steps_gone = 0;
             LeftWheelBack();
@@ -161,10 +192,19 @@ void SerialHandler() {
             pwm = 0.5;
             robot_state = kReadyForCommand;
             break;
+        case kLongDistanceReceived:
+            current_command = kMoveLongDistance;
+            steps_left = character * 10 * kStepsPerCentimetre;
+            steps_gone = 0;
+            LeftWheelForward();
+            RightWheelForward();
+            pwm_period = kInitialPwmPeriod;
+            pwm.period_us(pwm_period);
+            pwm = 0.5;
+            robot_state = kReadyForCommand;
+            break;
         case kLeftReceived:
-            if (character == 0) {
-                led_zero_distance_received = 1;
-            }
+            current_command = kTurnLeft;
             steps_left = character * kStepsPerDegree;
             steps_gone = 0;
             LeftWheelBack();
@@ -175,9 +215,7 @@ void SerialHandler() {
             robot_state = kReadyForCommand;
             break;
         case kRightReceived:
-            if (character == 0) {
-                led_zero_distance_received = 1;
-            }
+            current_command = kTurnRight;
             steps_left = character * kStepsPerDegree;
             steps_gone = 0;
             LeftWheelForward();
