@@ -23,7 +23,7 @@
 
 int main() {
     // Initialise the PWM -- this must happen before enabling interrupts or we
-    // get weird behaviour until a command has been executed.
+    // get weird behaviour.
     pwm.period_ms(0);
     pwm.pulsewidth_ms(0);
     // Enable interrupts for PWM match channel 4
@@ -37,6 +37,8 @@ int main() {
     // Enable PWM interrupts
     NVIC_EnableIRQ(PWM1_IRQn);
 
+    // Enable acceleration -- if you want to disable acceleration (in order to
+    // show the robot off publicly), comment out this line.
     ticker.attach(&ScaleSpeed, 0.05);
 
     usb_serial.baud(115200);
@@ -45,5 +47,6 @@ int main() {
          // trying to talk to us this early -- too bad.
          usb_serial.getc();  
     }
+    // Attach SerialHandler to the serial receive interrupt.
     usb_serial.attach(&SerialHandler);
 }

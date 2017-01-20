@@ -14,6 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+ // Bear in mind that ISRs -- interrupt service routines -- are not
+ // interruptible, so any interrupts generated whilst execution is inside one of
+ // these functions will be silently discarded. Therefore, they should all
+ // execute as quickly as possible; things like reading from the serial
+ // connection are extremely slow, even at 115200 baud.
 
 #include "interrupt_handlers.h"
 
@@ -169,7 +175,6 @@ void SerialHandler() {
                     break;
             }
             break;
-        // To the next guy: yes, this sucks. The important thing is it works.
         case kForwardReceived:
             current_command = kMoveForward;
             steps_left = character * kStepsPerCentimetre;

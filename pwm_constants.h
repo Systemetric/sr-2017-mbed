@@ -26,7 +26,7 @@
 // <https://developer.mbed.org/users/mbed_official/code/mbed-dev/file/02e0a0aed4ec/targets/TARGET_NXP/TARGET_LPC176X/pwmout_api.c>
 // The documentation for those functions can be found here:
 // <https://developer.mbed.org/users/mbed_official/code/mbed-dev/file/02e0a0aed4ec/hal/pwmout_api.h>
-// NB: *DO NOT* use the the HAL functions in user code. They are subject to
+// NB: *DO NOT* use the the mbed HAL functions in user code. They are subject to
 // change at any time.
 // This page is also interesting: <https://developer.mbed.org/handbook/mbed-library-internals>
 
