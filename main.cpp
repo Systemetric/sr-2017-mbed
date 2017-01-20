@@ -45,7 +45,7 @@ int main() {
     while (usb_serial.readable()) {
          // Drain any spurious/garbage characters, just in case. If the Pi is
          // trying to talk to us this early -- too bad.
-         usb_serial.getc();  
+         usb_serial.getc();
     }
     // Attach SerialHandler to the serial receive interrupt.
     usb_serial.attach(&SerialHandler);
