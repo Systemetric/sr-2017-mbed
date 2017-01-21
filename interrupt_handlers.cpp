@@ -63,6 +63,9 @@ DigitalOut led_decelerate(p13);
 DigitalOut led_left(LED2);
 DigitalOut led_right(LED4);
 
+
+// This keeps track of how far the robot has gone, and stops it when it's gone
+// far enough. It also sends a character over serial to say that it's finished.
 void PwmHandler() {
     // Check whether a match 4 interrupt is pending (we're only interested if it is).
     if (LPC_PWM1->IR & PWM_IR_MR4) {
@@ -102,8 +105,9 @@ void PwmHandler() {
 }
 
 // Alters the current speed of the robot to perform acceleration and
-// deceleration. This should be called frequently (perhaps every 0.05 seconds).
-// The more often it is called, the faster the robot will change speed.
+// deceleration. The more often this is called, the faster the robot will change
+// speed. In order to disable acceleration, comment out the ticker.attach(...)
+// line in main.cpp.
 void ScaleSpeed() {
     led_scale_speed = !led_scale_speed;  // Toggle an LED every timer tick.
 
@@ -143,8 +147,8 @@ void ScaleSpeed() {
     pwm = 0.5;
 }
 
-// Consumes one character from the serial connection (if possible), and acts
-// upon it.
+// This is called every time the mbed receives a character over serial. It sets
+// the wheels to turn in the right direction, and makes the robot start moving.
 void SerialHandler() {
     if (!usb_serial.readable()) {
         // There's not actually anything available to read(!), abort.

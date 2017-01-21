@@ -18,16 +18,8 @@
 #ifndef JDH_16_17_RASPI3_INTERRUPT_HANDLERS_H_
 #define JDH_16_17_RASPI3_INTERRUPT_HANDLERS_H_
 
-// Updates steps_gone and steps_left, and disables the PWM when at destination.
-// This should be attached to the PWM interrupt.
 void PwmHandler();
-
-// Alters the current speed of the robot to perform acceleration and
-// deceleration. This should be called frequently (e.g. every 0.05 seconds).
-// The more often it is called, the faster the robot will change speed.
 void ScaleSpeed();
-
-// Acts upon serial commands. Should be attached to serial receive.
 void SerialHandler();
 
 #endif  // JDH_16_17_RASPI3_INTERRUPT_HANDLERS_H_
