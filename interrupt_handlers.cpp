@@ -1,18 +1,11 @@
 /* interrupt_handlers.cpp
  *
- * Copyright 2016 Josh Holland
+ * This file is part of the code for the Hills Road/Systemetric entry to the
+ * 2017 Student Robotics competition "Easy as ABC".
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Written by Josh Holland <anowlcalledjosh@gmail.com>
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This file is available under CC0. You may use it for any purpose.
  */
  
  // Bear in mind that ISRs -- interrupt service routines -- are not
@@ -49,6 +42,7 @@ enum CurrentCommand {
 volatile int steps_gone = 0;
 volatile int steps_left = 0;
 volatile int pwm_period = 0;
+volatile char dip_switch_state = 0;
 volatile int robot_state = kReadyForCommand;
 // Track the currently executing command so that we can respond with its letter
 // when it ends.
@@ -56,12 +50,12 @@ volatile int current_command = kNone;
 
 // DigitalOuts are inherently "volatile", so they don't need to be explicitly
 // declared as such. If they are, things break.
-DigitalOut led_scale_speed(LED1);
 DigitalOut led_pwm_interrupt(p11);
 DigitalOut led_accelerate(p12);
 DigitalOut led_decelerate(p13);
-DigitalOut led_left(LED2);
-DigitalOut led_right(LED4);
+DigitalOut led_left(p14);
+DigitalOut led_right(p10);
+DigitalOut low_power(LED1);
 
 
 // This keeps track of how far the robot has gone, and stops it when it's gone
@@ -109,8 +103,6 @@ void PwmHandler() {
 // speed. In order to disable acceleration, comment out the ticker.attach(...)
 // line in main.cpp.
 void ScaleSpeed() {
-    led_scale_speed = !led_scale_speed;  // Toggle an LED every timer tick.
-
     if (steps_left == 0) {
         led_accelerate = 0;
         led_decelerate = 0;
@@ -121,20 +113,34 @@ void ScaleSpeed() {
         // not gone far, probably accelerate
         if (steps_left < steps_gone) {
             // more than halfway there (but still close to start), decelerate
+            if (pwm_period < kInitialPwmPeriod) {
+                led_accelerate = 0;
+                led_decelerate = 1;
+                pwm_period += kPwmPeriodIncrement;
+            }
+        } else {
+            if (battery_voltage.read() < kLowPowerThreshold) {
+                // Low power
+                if (steps_gone < kAccelLowPowerSteps) {
+                    // accelerate anyway
+                    led_accelerate = 1;
+                    led_decelerate = 0;
+                    pwm_period -= kPwmPeriodIncrement;
+                }
+            } else {
+                // less than halfway there (and not gone far), accelerate
+                led_accelerate = 1;
+                led_decelerate = 0;
+                pwm_period -= kPwmPeriodIncrement;
+            }
+        }
+    } else if (steps_left < kAccelDecelSteps) {
+        if (pwm_period < kInitialPwmPeriod) {
+            // almost done moving, decelerate
             led_accelerate = 0;
             led_decelerate = 1;
             pwm_period += kPwmPeriodIncrement;
-        } else {
-            // less than halfway there (and not gone far), accelerate
-            led_accelerate = 1;
-            led_decelerate = 0;
-            pwm_period -= kPwmPeriodIncrement;
         }
-    } else if (steps_left < kAccelDecelSteps) {
-        // almost done moving, decelerate
-        led_accelerate = 0;
-        led_decelerate = 1;
-        pwm_period += kPwmPeriodIncrement;
     } else {
         // In the middle of movement, don't change speed.
         led_accelerate = 1;
@@ -158,24 +164,28 @@ void SerialHandler() {
     switch (robot_state) {
         case kReadyForCommand:
             switch (character) {
-                case 'f':
+                case 'f':  // move forwards
                     robot_state = kForwardReceived;
                     break;
-                case 'b':
+                case 'b':  // move backwards
                     robot_state = kBackwardReceived;
                     break;
-                case 'F':
+                case 'F':  // move forwards lots
                     robot_state = kLongDistanceReceived;
                     break;
-                case 'l':
+                case 'l':  // turn left
                     led_left = 1;
                     led_right = 0;
                     robot_state = kLeftReceived;
                     break;
-                case 'r':
+                case 'r':  // turn right
                     led_right = 1;
                     led_left = 0;
                     robot_state = kRightReceived;
+                    break;
+                case 's':  // get DIP switch state
+                    dip_switch_state = (char)dip_switch.read();
+                    usb_serial.putc(dip_switch_state);
                     break;
             }
             break;

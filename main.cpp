@@ -1,18 +1,11 @@
 /* main.cpp
  *
- * Copyright 2016 Josh Holland
+ * This file is part of the code for the Hills Road/Systemetric entry to the
+ * 2017 Student Robotics competition "Easy as ABC".
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Written by Josh Holland <anowlcalledjosh@gmail.com>
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This file is available under CC0. You may use it for any purpose.
  */
 
 #include "mbed.h"
@@ -21,7 +14,14 @@
 #include "interrupt_handlers.h"
 #include "pwm_constants.h"
 
+DigitalOut led_two(LED2);
+DigitalOut led_three(LED3);
+
 int main() {
+    // Disable both wheels (yes, by putting the enable pins high).
+    left_wheel_enable = 0;
+    right_wheel_enable = 0;
+
     // Initialise the PWM -- this must happen before enabling interrupts or we
     // get weird behaviour.
     pwm.period_ms(0);
@@ -49,4 +49,16 @@ int main() {
     }
     // Attach SerialHandler to the serial receive interrupt.
     usb_serial.attach(&SerialHandler);
+
+    led_two = 1;
+    // Wait until the motor boards have power, then enable the motor boards.
+    while (battery_voltage.read() < 0.5);
+    led_three = 1;
+    wait_ms(200);
+    left_wheel_enable = 1;
+    right_wheel_enable = 1;
+    led_two = 0;
+    led_three = 0;
+
+    while(1);
 }

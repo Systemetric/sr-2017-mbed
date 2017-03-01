@@ -1,18 +1,11 @@
 /* robot_specific.h
  *
- * Copyright 2016 Josh Holland
+ * This file is part of the code for the Hills Road/Systemetric entry to the
+ * 2017 Student Robotics competition "Easy as ABC".
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Written by Josh Holland <anowlcalledjosh@gmail.com>
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This file is available under CC0. You may use it for any purpose.
  */
 
 #ifndef JDH_16_17_RASPI3_ROBOT_SPECIFIC_H_
@@ -25,10 +18,15 @@ extern const double kRobotDiameter;
 
 extern const int kStepsPerRotation;
 extern const int kAccelDecelSteps;
+extern const int kAccelLowPowerSteps;
 extern const int kInitialPwmPeriod;
 extern const int kPwmPeriodIncrement;
+extern const int kLowPowerThreshold;
 extern DigitalOut right_wheel_direction;
 extern DigitalOut left_wheel_direction;
+extern DigitalOut left_wheel_enable;
+extern DigitalOut right_wheel_enable;
+extern AnalogIn battery_voltage;
 void LeftWheelForward();
 void LeftWheelBack();
 void RightWheelForward();
@@ -39,5 +37,6 @@ extern const double kStepsPerDegree;
 extern PwmOut pwm;
 extern Serial usb_serial;
 extern Ticker ticker;
+extern BusIn dip_switch;
 
 #endif  // JDH_16_17_RASPI3_ROBOT_SPECIFIC_H_
