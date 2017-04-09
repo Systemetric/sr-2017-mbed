@@ -21,7 +21,7 @@ extern const int kAccelDecelSteps;
 extern const int kAccelLowPowerSteps;
 extern const int kInitialPwmPeriod;
 extern const int kPwmPeriodIncrement;
-extern const int kLowPowerThreshold;
+extern const double kLowPowerThreshold;
 extern DigitalOut right_wheel_direction;
 extern DigitalOut left_wheel_direction;
 extern DigitalOut left_wheel_enable;

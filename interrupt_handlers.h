@@ -14,5 +14,19 @@
 void PwmHandler();
 void ScaleSpeed();
 void SerialHandler();
+extern bool GyroTurnDetected;
+extern volatile int steps_left;
+extern volatile int continue_steps;
+extern int ignore_for;
+enum CurrentCommand {
+    kNone,
+    kMoveForward,
+    kMoveBackward,
+    kMoveLongDistance,
+    kTurnLeft,
+    kTurnRight
+};
+extern volatile CurrentCommand current_command;
+extern volatile CurrentCommand continue_command;
 
 #endif  // JDH_16_17_RASPI3_INTERRUPT_HANDLERS_H_

@@ -29,20 +29,20 @@ const double kRobotDiameter = 40.30;  // 42.79 * 17/18 * 359/360
 const int kStepsPerRotation = 3200;
 
 // The number of steps to accelerate and decelerate for.
-const int kAccelDecelSteps = 6000;
+const int kAccelDecelSteps = 7000;
 
 // The number of steps to accelerate for when in the low-power state.
 const int kAccelLowPowerSteps = 2000;
 
 // The initial PWM period, in microseconds.
-const int kInitialPwmPeriod = 1000;
+const int kInitialPwmPeriod = 1500;
 
 // How much to change the PWM period by at a time, in microseconds.
-const int kPwmPeriodIncrement = 10;
+const int kPwmPeriodIncrement = 1;  // was 15
 
 // The voltage at the motor boards, as a fraction, at which the robot should
-// slow down to minimum speed to decrease the likelihood of the motors stalling.
-const int kLowPowerThreshold = 0.6;
+// take action to decrease the likelihood of the motors stalling.
+const double kLowPowerThreshold = 0.6;
 
 // The pins that the motor control boards' DIR pins are connected to.
 DigitalOut right_wheel_direction(p16);
@@ -64,9 +64,10 @@ void RightWheelBack() {right_wheel_direction = 0;}
 
 /******************** These shouldn't usually be changed. *********************/
 
-// This isn't defined in the mbed's math.h, so we define it here.
+// This isn't defined in the mbed's math.h, so we define it here (unexported).
 const double kPi = 3.14159265358979323846;
 
+// Unexported.
 const double kWheelCircumference = kWheelDiameter * kPi;
 const double kRobotCircumference = kRobotDiameter * kPi;
 
